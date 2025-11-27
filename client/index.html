@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestor de Películas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container py-4">
+    <h1 class="mb-4">🎬 Gestor de Películas</h1>
+
+    <!-- Crear nueva película -->
+    <div class="card mb-4">
+      <div class="card-header">Agregar película</div>
+      <div class="card-body">
+        <form id="form-crear" class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Título</label>
+            <input type="text" class="form-control" name="titulo" required>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Año</label>
+            <input type="number" class="form-control" name="año" min="1888" max="2100" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Género</label>
+            <input type="text" class="form-control" name="genero" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Director</label>
+            <input type="text" class="form-control" name="director" required>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabla de películas -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Lista de películas</span>
+        <button id="btn-refrescar" class="btn btn-outline-secondary btn-sm">Refrescar</button>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Año</th>
+                <th>Género</th>
+                <th>Director</th>
+                <th style="width: 160px;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-peliculas"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal editar -->
+  <div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="form-editar" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Editar película</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id" id="editar-id">
+          <div class="mb-3">
+            <label class="form-label">Título</label>
+            <input type="text" class="form-control" name="titulo" id="editar-titulo" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Año</label>
+            <input type="number" class="form-control" name="año" id="editar-año" min="1888" max="2100" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Género</label>
+            <input type="text" class="form-control" name="genero" id="editar-genero" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Director</label>
+            <input type="text" class="form-control" name="director" id="editar-director" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    // Usar ruta relativa para que funcione tanto local como en Railway
+  const API_BASE_URL = '';
+  </script>
+
+  <script src="./app.js"></script>
+</body>
+</html>
