@@ -1,128 +1,157 @@
-// index.js (backend)
-import cors from 'cors';
-app.use(cors());
+console.log("app.js cargado correctamente");
 
-// Helpers
+//Detectar si estamos en Railway o en local
+const API_BASE_URL = window.location.hostname.includes("railway.app")
+  ? "https://peliculas-app-production.up.railway.app"
+  : "http://localhost:3000";
+
+//Helpers
 const api = (path) => `${API_BASE_URL}${path}`;
-const toastError = (msg) => alert(msg); // puedes cambiar a toasts de Bootstrap si quieres
+const toastError = (msg) => alert(msg);
 
-// Renderizar tabla
+//Renderizar la tabla de películas
 function renderTabla(peliculas) {
-  const tbody = $('#tabla-peliculas');
-  tbody.empty();
-  peliculas.forEach(p => {
-    tbody.append(`
-      <tr data-id="${p.id}">
+  const tbody = document.querySelector("#tabla-peliculas");
+  tbody.innerHTML = "";
+
+  peliculas.forEach((p) => {
+    tbody.innerHTML += `
+      <tr>
         <td>${p.id}</td>
         <td>${p.titulo}</td>
         <td>${p.año}</td>
-        <td>${p.genero}</td>
-        <td>${p.director}</td>
+        <td>${p.descripcion}</td>
         <td>
-          <button class="btn btn-sm btn-warning btn-editar">Editar</button>
-          <button class="btn btn-sm btn-danger btn-eliminar">Eliminar</button>
+          ${p.imagen ? `<img src="${p.imagen}" width="60">` : "—"}
+        </td>
+        <td>
+          <button class="btn btn-warning btn-sm btn-editar" data-id="${p.id}">Editar</button>
+          <button class="btn btn-danger btn-sm btn-eliminar" data-id="${p.id}">Eliminar</button>
         </td>
       </tr>
-    `);
+    `;
   });
+
+  activarBotones();
 }
 
-// Cargar lista
+//Cargar lista de películas
 async function cargarPeliculas() {
   try {
-    const res = await fetch(api('/peliculas'));
+    const res = await fetch(api("/peliculas"));
     const data = await res.json();
     renderTabla(data);
-  } catch (e) {
-    toastError('Error al cargar películas');
-    console.error(e);
+  } catch (err) {
+    toastError("Error al cargar películas");
   }
 }
 
-// Crear
-$('#form-crear').on('submit', async function (e) {
+//Crear nueva película
+document.querySelector("#form-crear").addEventListener("submit", async function (e) {
   e.preventDefault();
+
   const body = {
     titulo: this.titulo.value.trim(),
     año: Number(this.año.value),
-    genero: this.genero.value.trim(),
-    director: this.director.value.trim()
+    descripcion: this.descripcion.value.trim(),
+    imagen: this.imagen.value.trim() || null
   };
+
   try {
-    const res = await fetch(api('/peliculas'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+    const res = await fetch(api("/peliculas"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
-    if (!res.ok) throw new Error('Error al crear');
+
+    if (!res.ok) throw new Error();
+
     this.reset();
     cargarPeliculas();
-  } catch (e) {
-    toastError('No se pudo crear la película');
-    console.error(e);
+    bootstrap.Modal.getInstance(document.getElementById("modalCrear")).hide();
+
+  } catch (err) {
+    toastError("No se pudo crear la película");
   }
 });
 
-// Abrir modal de edición
-$(document).on('click', '.btn-editar', async function () {
-  const id = $(this).closest('tr').data('id');
-  try {
-    const res = await fetch(api(`/peliculas/${id}`));
-    const p = await res.json();
-    $('#editar-id').val(p.id);
-    $('#editar-titulo').val(p.titulo);
-    $('#editar-año').val(p.año);
-    $('#editar-genero').val(p.genero);
-    $('#editar-director').val(p.director);
-    const modal = new bootstrap.Modal(document.getElementById('modalEditar'));
-    modal.show();
-  } catch (e) {
-    toastError('No se pudo cargar la película');
-    console.error(e);
-  }
-});
+//Activar botones (editar y eliminar)
+function activarBotones() {
+  // Editar
+  document.querySelectorAll(".btn-editar").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
 
-// Guardar edición
-$('#form-editar').on('submit', async function (e) {
+      try {
+        const res = await fetch(api(`/peliculas/${id}`));
+        const p = await res.json();
+
+        document.querySelector("#editar-id").value = p.id;
+        document.querySelector("#editar-titulo").value = p.titulo;
+        document.querySelector("#editar-año").value = p.año;
+        document.querySelector("#editar-descripcion").value = p.descripcion;
+        document.querySelector("#editar-imagen").value = p.imagen || "";
+
+        new bootstrap.Modal(document.getElementById("modalEditar")).show();
+
+      } catch {
+        toastError("No se pudo cargar la película a editar");
+      }
+    });
+  });
+
+  // Eliminar
+  document.querySelectorAll(".btn-eliminar").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+
+      if (!confirm("¿Seguro que deseas eliminar esta película?")) return;
+
+      try {
+        const res = await fetch(api(`/peliculas/${id}`), {
+          method: "DELETE",
+        });
+
+        if (!res.ok) throw new Error();
+
+        cargarPeliculas();
+
+      } catch {
+        toastError("Error al eliminar la película");
+      }
+    });
+  });
+}
+
+//Guardar cambios (editar)
+document.querySelector("#form-editar").addEventListener("submit", async function (e) {
   e.preventDefault();
-  const id = $('#editar-id').val();
+
+  const id = document.querySelector("#editar-id").value;
+
   const body = {
-    titulo: $('#editar-titulo').val().trim(),
-    año: Number($('#editar-año').val()),
-    genero: $('#editar-genero').val().trim(),
-    director: $('#editar-director').val().trim()
+    titulo: document.querySelector("#editar-titulo").value.trim(),
+    año: Number(document.querySelector("#editar-año").value),
+    descripcion: document.querySelector("#editar-descripcion").value.trim(),
+    imagen: document.querySelector("#editar-imagen").value.trim() || null,
   };
+
   try {
     const res = await fetch(api(`/peliculas/${id}`), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
-    if (!res.ok) throw new Error('Error al editar');
+
+    if (!res.ok) throw new Error();
+
     cargarPeliculas();
-    bootstrap.Modal.getInstance(document.getElementById('modalEditar')).hide();
-  } catch (e) {
-    toastError('No se pudo editar la película');
-    console.error(e);
+    bootstrap.Modal.getInstance(document.getElementById("modalEditar")).hide();
+
+  } catch {
+    toastError("Error al editar");
   }
 });
 
-// Eliminar
-$(document).on('click', '.btn-eliminar', async function () {
-  const id = $(this).closest('tr').data('id');
-  if (!confirm('¿Seguro que quieres eliminar esta película?')) return;
-  try {
-    const res = await fetch(api(`/peliculas/${id}`), { method: 'DELETE' });
-    if (!res.ok) throw new Error('Error al eliminar');
-    cargarPeliculas();
-  } catch (e) {
-    toastError('No se pudo eliminar la película');
-    console.error(e);
-  }
-});
-
-// Refrescar manual
-$('#btn-refrescar').on('click', cargarPeliculas);
-
-// Inicial
-$(document).ready(cargarPeliculas);
+//Cargar al iniciar
+cargarPeliculas();
